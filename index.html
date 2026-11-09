@@ -679,7 +679,7 @@ function preloadSprites(done) {
       if (doneOne) return;
       doneOne = true;
       img.onload = img.onerror = null;
-      if (!isRetry) attempt(key, url + '?retry=1', true);
+      if (!isRetry && url.indexOf('data:') !== 0) attempt(key, url + '?retry=1', true);
       else settle();
     }, 7000);
     img.onload = function () {
@@ -693,13 +693,13 @@ function preloadSprites(done) {
       if (doneOne) return;
       doneOne = true;
       clearTimeout(timer);
-      if (!isRetry) attempt(key, url + '?retry=1', true);
+      if (!isRetry && url.indexOf('data:') !== 0) attempt(key, url + '?retry=1', true);
       else settle();
     };
     img.src = url;
   }
   progress();
-  SPRITES.forEach(function (sp) { attempt(sp[0], 'assets/sprites/' + sp[1], false); });
+  SPRITES.forEach(function (sp) { attempt(sp[0], sp[1].indexOf('data:') === 0 ? sp[1] : 'assets/sprites/' + sp[1], false); });
   setTimeout(finish, 18000); /* absolute deadline */
 }
 
