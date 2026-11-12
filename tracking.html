@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>Pip's Adventure — Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --sky:#55B8FF; --grass:#9BE63D; --forest:#47A84D; --yellow:#FFD33D;
+      --orange:#F5A13A; --cream:#FFF0CE; --brown:#3B1D16; --navy:#263B59;
+      --red:#FF665C; --navy-a:rgba(38,59,89,.93);
+    }
+    *{ box-sizing:border-box; }
+    html, body{
+      margin:0; padding:0; min-height:100%;
+      background:#10101e;
+      font-family:"Pixelify Sans","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+      font-weight:700; color:var(--cream);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .page{ max-width:1060px; margin:0 auto; padding:calc(10px + env(safe-area-inset-top)) 12px 28px; }
+
+    /* ---------- header bar (same HUD language as the game) ---------- */
+    .topbar{
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+      background:var(--navy-a);
+      border:3px solid rgba(255,255,255,.92);
+      border-radius:20px;
+      box-shadow:0 4px 0 rgba(59,29,22,.35), 0 8px 18px rgba(16,24,48,.28);
+      padding:10px 14px;
+    }
+    .topbar .logo{
+      width:46px; height:46px; flex:0 0 auto; border-radius:13px;
+      background:linear-gradient(180deg,#FFE066,var(--yellow));
+      border:3px solid var(--brown); box-shadow:0 4px 0 var(--orange);
+      display:flex; align-items:center; justify-content:center;
+      font-size:26px; line-height:1;
+    }
+    .topbar h1{ margin:0; font-size:26px; letter-spacing:.02em; text-shadow:0 2px 0 var(--brown); }
+    .topbar .sub{ font-size:14px; color:var(--cream); opacity:.85; }
+    .spacer{ flex:1 1 auto; }
+    .pill{
+      font-size:14px; padding:6px 12px; border-radius:999px;
+      border:3px solid var(--brown); background:var(--grass); color:var(--brown);
+      box-shadow:0 3px 0 rgba(59,29,22,.4); white-space:nowrap;
+    }
+    .pill .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--forest); margin-right:6px; animation:blink 1.2s infinite; }
+    @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.25} }
+    .btn{
+      display:inline-flex; align-items:center; gap:6px; cursor:pointer; text-decoration:none;
+      font-family:inherit; font-weight:700; font-size:16px; color:var(--brown);
+      background:linear-gradient(180deg,#FFE066,var(--yellow));
+      border:3px solid var(--brown); border-radius:13px;
+      box-shadow:0 4px 0 var(--orange); padding:8px 14px;
+    }
+    .btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--orange); }
+    .btn.ghost{ background:var(--cream); box-shadow:0 4px 0 rgba(59,29,22,.35); }
+
+    /* ---------- metric cards ---------- */
+    .grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px; margin-top:16px;
+    }
+    .card{
+      background:var(--navy-a);
+      border:3px solid rgba(255,255,255,.92);
+      border-radius:20px;
+      box-shadow:0 4px 0 rgba(59,29,22,.35), 0 8px 18px rgba(16,24,48,.28);
+      padding:14px 14px 12px;
+    }
+    .card .label{ font-size:13px; letter-spacing:.06em; opacity:.9; }
+    .card .value{ font-size:38px; line-height:1.05; text-shadow:0 2px 0 var(--brown); margin-top:2px; }
+    .card .value small{ font-size:18px; opacity:.85; }
+    .card .delta{ font-size:14px; margin-top:2px; }
+    .delta.up{ color:var(--grass); }
+    .delta.down{ color:var(--red); }
+    .delta.flat{ color:var(--yellow); }
+    .card canvas{ display:block; width:100%; height:44px; margin-top:8px; background:rgba(255,255,255,.08); border-radius:10px; }
+
+    /* ---------- status list ---------- */
+    .panel{
+      margin-top:16px;
+      background:var(--navy-a);
+      border:3px solid rgba(255,255,255,.92);
+      border-radius:20px;
+      box-shadow:0 4px 0 rgba(59,29,22,.35), 0 8px 18px rgba(16,24,48,.28);
+      padding:14px;
+    }
+    .panel h2{ margin:0 0 10px; font-size:20px; text-shadow:0 2px 0 var(--brown); }
+    .row{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:10px 8px; border-top:2px solid rgba(255,255,255,.18);
+    }
+    .row:first-of-type{ border-top:0; }
+    .status-dot{ width:14px; height:14px; border-radius:50%; flex:0 0 auto; border:2px solid var(--brown); }
+    .status-dot.ok{ background:var(--grass); }
+    .status-dot.warn{ background:var(--yellow); }
+    .status-dot.bad{ background:var(--red); }
+    .row .name{ font-size:17px; }
+    .row .detail{ font-size:14px; opacity:.85; }
+    .row .tag{ margin-left:auto; font-size:13px; padding:4px 10px; border-radius:999px; border:2px solid var(--brown); background:var(--cream); color:var(--brown); white-space:nowrap; }
+
+    /* ---------- event log ---------- */
+    .log{ list-style:none; margin:0; padding:0; font-size:15px; }
+    .log li{ padding:7px 4px; border-top:2px solid rgba(255,255,255,.14); display:flex; gap:10px; }
+    .log li:first-child{ border-top:0; }
+    .log .t{ color:var(--yellow); white-space:nowrap; }
+    .log .m{ opacity:.95; }
+    .foot{ margin-top:16px; font-size:13px; opacity:.75; text-align:center; }
+    @media (max-width:560px){ .topbar h1{ font-size:22px; } .card .value{ font-size:32px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="logo">📈</div>
+      <div>
+        <h1>Pip's Adventure — Tracking</h1>
+        <div class="sub">Generic tracking test page · live-updating sample metrics</div>
+      </div>
+      <div class="spacer"></div>
+      <span class="pill"><span class="dot"></span>LIVE</span>
+      <a class="btn" href="index.html">▶ Play game</a>
+    </header>
+
+    <section class="grid" id="metrics">
+      <div class="card" data-metric="players">
+        <div class="label">PLAYERS ONLINE</div>
+        <div class="value"><span class="num">0</span></div>
+        <div class="delta flat">—</div>
+        <canvas width="220" height="44"></canvas>
+      </div>
+      <div class="card" data-metric="coins">
+        <div class="label">COINS COLLECTED TODAY</div>
+        <div class="value"><span class="num">0</span></div>
+        <div class="delta flat">—</div>
+        <canvas width="220" height="44"></canvas>
+      </div>
+      <div class="card" data-metric="levels">
+        <div class="label">LEVELS COMPLETED</div>
+        <div class="value"><span class="num">0</span></div>
+        <div class="delta flat">—</div>
+        <canvas width="220" height="44"></canvas>
+      </div>
+      <div class="card" data-metric="playtime">
+        <div class="label">PLAY TIME TODAY</div>
+        <div class="value"><span class="num">0</span> <small>min</small></div>
+        <div class="delta flat">—</div>
+        <canvas width="220" height="44"></canvas>
+      </div>
+      <div class="card" data-metric="boxes">
+        <div class="label">BOXES.DEV BOX STATUS</div>
+        <div class="value" style="font-size:28px;"><span class="num">—</span></div>
+        <div class="delta flat">pips-adventure · 4 vCPU / 8 GB</div>
+        <canvas width="220" height="44"></canvas>
+      </div>
+      <div class="card" data-metric="uptime">
+        <div class="label">TRACKING PAGE UPTIME</div>
+        <div class="value"><span class="num">0</span> <small>s</small></div>
+        <div class="delta flat">since this page loaded</div>
+        <canvas width="220" height="44"></canvas>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Tracked items</h2>
+      <div class="row"><span class="status-dot ok"></span><span class="name">Game build</span><span class="detail">pips-adventure-opal.vercel.app</span><span class="tag">OK · 200</span></div>
+      <div class="row"><span class="status-dot ok"></span><span class="name">Tracking page</span><span class="detail">tracking.html in the same repo</span><span class="tag">OK · live</span></div>
+      <div class="row"><span class="status-dot warn"></span><span class="name">boxes.dev box</span><span class="detail">pips-adventure · daemon not bootstrapped (no project linked)</span><span class="tag">PAUSED</span></div>
+      <div class="row"><span class="status-dot ok"></span><span class="name">Sprites</span><span class="detail">18 sprites · loader fix dfb1791</span><span class="tag">OK</span></div>
+      <div class="row"><span class="status-dot warn"></span><span class="name">Agent in box</span><span class="detail">not running — CLI WebSocket hangs through VM proxy; direct API only</span><span class="tag">BLOCKED</span></div>
+    </section>
+
+    <section class="panel">
+      <h2>Event log <span style="font-size:13px; opacity:.8;">(updates live)</span></h2>
+      <ul class="log" id="log"></ul>
+    </section>
+
+    <p class="foot">Last updated <span id="updated">—</span> · Sample data is simulated in your browser for testing · <a href="index.html" style="color:var(--yellow);">Back to Pip's Adventure</a></p>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+      // ---- simulated live metrics (client-side, for testing) ----
+      var state = {
+        players:  { v: 128, min: 40,  max: 420, step: 14 },
+        coins:    { v: 1840, min: 0,  max: 99999, step: 37 },
+        levels:   { v: 312, min: 0,  max: 99999, step: 2 },
+        playtime: { v: 96,  min: 0,  max: 99999, step: 1 },
+        boxes:    { v: 0,   min: 0,  max: 1, step: 0 },
+        uptime:   { v: 0,   min: 0,  max: 999999, step: 1 }
+      };
+      var hist = {};
+      var cards = {};
+      document.querySelectorAll('.card[data-metric]').forEach(function(card){
+        var key = card.getAttribute('data-metric');
+        cards[key] = { el: card, num: card.querySelector('.num'), delta: card.querySelector('.delta'), canvas: card.querySelector('canvas') };
+        hist[key] = [];
+      });
+      var boxStates = ['PAUSED', 'RUNNING', 'PAUSED', 'PAUSED'];
+      var boxIdx = 0;
+      var logEl = document.getElementById('log');
+      var updatedEl = document.getElementById('updated');
+      var startTs = Date.now();
+
+      function fmt(n){ return n.toLocaleString('en-US'); }
+      function nowStr(){
+        var d = new Date();
+        return d.toLocaleTimeString('en-GB', { hour12:false });
+      }
+      function log(msg){
+        var li = document.createElement('li');
+        var t = document.createElement('span'); t.className = 't'; t.textContent = nowStr();
+        var m = document.createElement('span'); m.className = 'm'; m.textContent = msg;
+        li.appendChild(t); li.appendChild(m);
+        logEl.insertBefore(li, logEl.firstChild);
+        while (logEl.children.length > 8) logEl.removeChild(logEl.lastChild);
+      }
+      function drawSpark(key){
+        var c = cards[key]; if (!c || !c.canvas) return;
+        var ctx = c.canvas.getContext('2d');
+        var W = c.canvas.width, H = c.canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        var h = hist[key]; if (h.length < 2) return;
+        var min = Math.min.apply(null, h), max = Math.max.apply(null, h);
+        var span = (max - min) || 1;
+        ctx.beginPath();
+        h.forEach(function(v, i){
+          var x = (i / (h.length - 1)) * (W - 4) + 2;
+          var y = H - 4 - ((v - min) / span) * (H - 8);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = '#FFD33D'; ctx.lineWidth = 2; ctx.stroke();
+      }
+      function tick(){
+        Object.keys(state).forEach(function(key){
+          var s = state[key], c = cards[key];
+          if (!c) return;
+          var prev = s.v;
+          if (key === 'uptime') s.v = Math.floor((Date.now() - startTs) / 1000);
+          else if (key === 'boxes') { /* box state is a label, not a number */ }
+          else {
+            s.v = Math.max(s.min, Math.min(s.max, s.v + Math.round((Math.random() - 0.42) * s.step)));
+            if (key === 'coins' || key === 'levels' || key === 'playtime') s.v = Math.max(prev, s.v);
+          }
+          if (key === 'boxes') {
+            boxIdx = (boxIdx + 1) % boxStates.length;
+            c.num.textContent = boxStates[boxIdx];
+          } else {
+            c.num.textContent = fmt(s.v);
+          }
+          var d = s.v - prev;
+          if (key === 'uptime' || key === 'boxes') { c.delta.textContent = '—'; c.delta.className = 'delta flat'; }
+          else if (d > 0) { c.delta.textContent = '▲ +' + fmt(d) + ' since last tick'; c.delta.className = 'delta up'; }
+          else if (d < 0) { c.delta.textContent = '▼ ' + fmt(d) + ' since last tick'; c.delta.className = 'delta down'; }
+          else { c.delta.textContent = '— no change'; c.delta.className = 'delta flat'; }
+          hist[key].push(key === 'boxes' ? (boxStates[boxIdx] === 'RUNNING' ? 1 : 0) : s.v);
+          if (hist[key].length > 40) hist[key].shift();
+          drawSpark(key);
+        });
+        updatedEl.textContent = nowStr();
+      }
+      // seed history so sparklines draw immediately
+      Object.keys(state).forEach(function(key){
+        for (var i = 0; i < 24; i++) hist[key].push(state[key].v + Math.round((Math.random() - 0.5) * 20));
+      });
+      log('Tracking page loaded — live updates started (1s interval).');
+      log('Sample metrics are simulated in-browser for testing.');
+      log('Box "pips-adventure" is PAUSED; daemon bootstrap is blocked (no project linked).');
+      tick();
+      setInterval(tick, 1000);
+      setInterval(function(){
+        var events = [
+          'Heartbeat OK — all tracked items polled.',
+          'Players online drifted within normal range.',
+          'Coins counter incremented from game sessions.',
+          'No new errors in the last minute.'
+        ];
+        log(events[Math.floor(Math.random() * events.length)]);
+      }, 15000);
+    })();
+  </script>
+</body>
+</html>
