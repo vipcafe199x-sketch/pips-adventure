@@ -1,356 +1,145 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
-  <link rel="icon" href="data:," />
-  <title>Pip's Adventure — Tracking</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root{
-      --sky:#55B8FF; --grass:#9BE63D; --forest:#47A84D; --yellow:#FFD33D;
-      --orange:#F5A13A; --cream:#FFF0CE; --brown:#3B1D16; --navy:#263B59;
-      --red:#FF665C; --navy-a:rgba(38,59,89,.93);
-    }
-    *{ box-sizing:border-box; }
-    html, body{
-      margin:0; padding:0; min-height:100%;
-      background:#10101e;
-      font-family:"Pixelify Sans","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
-      font-weight:700; color:var(--cream);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .page{ max-width:1060px; margin:0 auto; padding:calc(10px + env(safe-area-inset-top)) 12px 28px; }
-
-    .topbar{
-      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-      background:var(--navy-a);
-      border:3px solid rgba(255,255,255,.92);
-      border-radius:20px;
-      box-shadow:0 4px 0 rgba(59,29,22,.35), 0 8px 18px rgba(16,24,48,.28);
-      padding:10px 14px;
-    }
-    .topbar .logo{
-      width:46px; height:46px; flex:0 0 auto; border-radius:13px;
-      background:linear-gradient(180deg,#FFE066,var(--yellow));
-      border:3px solid var(--brown); box-shadow:0 4px 0 var(--orange);
-      display:flex; align-items:center; justify-content:center;
-      font-size:26px; line-height:1;
-    }
-    .topbar h1{ margin:0; font-size:26px; letter-spacing:.02em; text-shadow:0 2px 0 var(--brown); }
-    .topbar .sub{ font-size:14px; color:var(--cream); opacity:.85; }
-    .spacer{ flex:1 1 auto; }
-    .clock{ font-size:16px; color:var(--yellow); text-shadow:0 2px 0 var(--brown); white-space:nowrap; }
-    .pill{
-      font-size:14px; padding:6px 12px; border-radius:999px;
-      border:3px solid var(--brown); background:var(--grass); color:var(--brown);
-      box-shadow:0 3px 0 rgba(59,29,22,.4); white-space:nowrap;
-    }
-    .pill .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--forest); margin-right:6px; animation:blink 1.2s infinite; }
-    @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.25} }
-    .btn{
-      display:inline-flex; align-items:center; gap:6px; cursor:pointer; text-decoration:none;
-      font-family:inherit; font-weight:700; font-size:16px; color:var(--brown);
-      background:linear-gradient(180deg,#FFE066,var(--yellow));
-      border:3px solid var(--brown); border-radius:13px;
-      box-shadow:0 4px 0 var(--orange); padding:8px 14px;
-    }
-    .btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--orange); }
-
-    .panel{
-      margin-top:16px;
-      background:var(--navy-a);
-      border:3px solid rgba(255,255,255,.92);
-      border-radius:20px;
-      box-shadow:0 4px 0 rgba(59,29,22,.35), 0 8px 18px rgba(16,24,48,.28);
-      padding:14px;
-    }
-    .panel h2{ margin:0 0 10px; font-size:20px; text-shadow:0 2px 0 var(--brown); }
-    .panel h2 .note{ font-size:13px; opacity:.8; }
-    .row{
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      padding:10px 8px; border-top:2px solid rgba(255,255,255,.18);
-    }
-    .row:first-of-type{ border-top:0; }
-    .status-dot{ width:14px; height:14px; border-radius:50%; flex:0 0 auto; border:2px solid var(--brown); }
-    .status-dot.ok{ background:var(--grass); }
-    .status-dot.warn{ background:var(--yellow); }
-    .status-dot.bad{ background:var(--red); }
-    .status-dot.checking{ background:#9fb3c8; }
-    .row .name{ font-size:17px; }
-    .row .detail{ font-size:14px; opacity:.85; word-break:break-word; }
-    .row .tag{ margin-left:auto; font-size:13px; padding:4px 10px; border-radius:999px; border:2px solid var(--brown); background:var(--cream); color:var(--brown); white-space:nowrap; }
-
-    .grid{
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px; margin-top:16px;
-    }
-    .card{
-      background:var(--navy-a);
-      border:3px solid rgba(255,255,255,.92);
-      border-radius:20px;
-      box-shadow:0 4px 0 rgba(59,29,22,.35), 0 8px 18px rgba(16,24,48,.28);
-      padding:14px 14px 12px;
-    }
-    .card .label{ font-size:13px; letter-spacing:.06em; opacity:.9; }
-    .card .value{ font-size:38px; line-height:1.05; text-shadow:0 2px 0 var(--brown); margin-top:2px; }
-    .card .value small{ font-size:18px; opacity:.85; }
-    .card .delta{ font-size:14px; margin-top:2px; }
-    .delta.up{ color:var(--grass); }
-    .delta.down{ color:var(--red); }
-    .delta.flat{ color:var(--yellow); }
-    .card canvas{ display:block; width:100%; height:44px; margin-top:8px; background:rgba(255,255,255,.08); border-radius:10px; }
-    .card .sample{ font-size:12px; opacity:.7; margin-top:6px; }
-
-    .log{ list-style:none; margin:0; padding:0; font-size:15px; }
-    .log li{ padding:7px 4px; border-top:2px solid rgba(255,255,255,.14); display:flex; gap:10px; }
-    .log li:first-child{ border-top:0; }
-    .log .t{ color:var(--yellow); white-space:nowrap; }
-    .log .m{ opacity:.95; }
-    .foot{ margin-top:16px; font-size:13px; opacity:.75; text-align:center; }
-    @media (max-width:560px){ .topbar h1{ font-size:22px; } .card .value{ font-size:32px; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Pip's Adventure · Tracking dashboard</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#55b8ff;--grass:#9be63d;--yellow:#ffd33d;--cream:#fff0ce;--brown:#3b1d16;--muted:#b5c6da;--line:#3b506a;--red:#ff968c}
+*{box-sizing:border-box}body{margin:0;background:#101b2e;color:var(--cream);font:500 17px/1.45 'Pixelify Sans',monospace;background-image:radial-gradient(ellipse at 95% 0%,#274965,transparent 60%)}a{color:var(--sky);text-underline-offset:4px}button,a{ -webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible{outline:3px solid var(--sky);outline-offset:5px}.page{max-width:1180px;margin:auto;padding:28px 24px 40px}header,.toolbar,.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px}.mark{display:grid;place-items:center;width:44px;height:44px;background:var(--yellow);border:3px solid var(--brown);box-shadow:4px 4px 0 #b26a27;color:var(--brown);font-size:28px}.eyebrow{color:var(--grass);font-size:13px;letter-spacing:2px;text-transform:uppercase}.brand strong{font-size:22px}.button{font:700 16px 'Pixelify Sans',monospace;cursor:pointer;border:2px solid var(--brown);border-radius:8px;background:var(--yellow);color:var(--brown);padding:10px 16px;box-shadow:0 4px 0 #b26a27;text-decoration:none;display:inline-block}.button:disabled{opacity:.6;cursor:wait}h1{font-size:clamp(38px,6vw,64px);line-height:1;margin:12px 0 14px;letter-spacing:-1px}h1 span{color:var(--yellow)}.intro{margin:44px 0 26px}.intro p{max-width:690px;color:var(--muted);margin:0}.toolbar{padding:15px 0;border-block:1px solid var(--line);font-size:14px;color:var(--muted)}#clock{color:var(--cream);font-size:18px;font-variant-numeric:tabular-nums}.status{color:var(--yellow)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:24px 0}.card{min-width:0;background:linear-gradient(145deg,#253b55,#1b2b42);border:2px solid #49617a;border-radius:12px;box-shadow:0 5px 0 #091323;padding:20px;position:relative}.card-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.card h2{font-size:15px;font-weight:500;margin:0;color:#d0deed}.badge{font-size:11px;letter-spacing:1px;color:var(--grass);white-space:nowrap}.value{font-size:42px;color:var(--cream);margin:12px 0 0;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.detail{font-size:13px;color:var(--muted);min-height:38px;margin:8px 0}svg{display:block;width:100%;height:54px;background:linear-gradient(transparent 96%,#ffffff0a 96%);background-size:100% 18px}.chart-note{font-size:11px;color:var(--muted);margin-top:8px}.lower{display:grid;grid-template-columns:1.3fr 1fr;gap:22px}.panel{background:#17273d;border:1px solid var(--line);border-radius:12px;padding:22px;min-width:0}h2{font-size:22px;margin:0}.section-head{margin-bottom:16px}.small{font-size:13px;color:var(--muted)}.source{padding:16px 0;border-top:1px solid var(--line)}.source a{font-size:17px}.source p{font-size:14px;margin:6px 0 0;overflow-wrap:anywhere;color:var(--muted)}.source .status{margin-top:6px}.ok{color:var(--grass)!important}.bad{color:var(--red)!important}#commit-link{margin-top:6px}#commit-link:not([hidden]){display:inline-block}#log{margin:0;padding:0;list-style:none;font-size:14px}#log li{padding:12px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}#log time{color:var(--yellow);display:block;font-size:12px}footer{margin-top:26px;color:var(--muted);font-size:13px}noscript{display:block;padding:20px;background:#652b32}@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}}@media(max-width:480px){.page{padding:20px 16px}.grid{grid-template-columns:1fr}.intro{margin-top:32px}.card{padding:18px}h1{font-size:42px}}
+</style>
 </head>
 <body>
-  <div class="page">
-    <header class="topbar">
-      <div class="logo">📈</div>
-      <div>
-        <h1>Pip's Adventure — Tracking</h1>
-        <div class="sub">Live checks + sample game metrics · rebuilt test page</div>
-      </div>
-      <div class="spacer"></div>
-      <span class="clock" id="clock">—</span>
-      <span class="pill"><span class="dot"></span>LIVE</span>
-      <a class="btn" href="index.html">▶ Play game</a>
-    </header>
-
-    <section class="panel">
-      <h2>Live checks <span class="note">(real requests from your browser)</span></h2>
-      <div class="row"><span class="status-dot checking" id="dot-site"></span><span class="name">Game site</span><span class="detail">pips-adventure-opal.vercel.app</span><span class="tag" id="tag-site">checking…</span></div>
-      <div class="row"><span class="status-dot checking" id="dot-page"></span><span class="name">Tracking page</span><span class="detail">tracking.html (this page)</span><span class="tag" id="tag-page">checking…</span></div>
-      <div class="row"><span class="status-dot checking" id="dot-repo"></span><span class="name">Latest commit</span><span class="detail" id="detail-repo">github.com/vipcafe199x-sketch/pips-adventure</span><span class="tag" id="tag-repo">checking…</span></div>
-    </section>
-
-    <section class="grid" id="metrics">
-      <div class="card" data-metric="players">
-        <div class="label">PLAYERS ONLINE</div>
-        <div class="value"><span class="num">0</span></div>
-        <div class="delta flat">—</div>
-        <canvas width="220" height="44"></canvas>
-        <div class="sample">sample data · simulated in-browser</div>
-      </div>
-      <div class="card" data-metric="coins">
-        <div class="label">COINS COLLECTED TODAY</div>
-        <div class="value"><span class="num">0</span></div>
-        <div class="delta flat">—</div>
-        <canvas width="220" height="44"></canvas>
-        <div class="sample">sample data · simulated in-browser</div>
-      </div>
-      <div class="card" data-metric="levels">
-        <div class="label">LEVELS COMPLETED</div>
-        <div class="value"><span class="num">0</span></div>
-        <div class="delta flat">—</div>
-        <canvas width="220" height="44"></canvas>
-        <div class="sample">sample data · simulated in-browser</div>
-      </div>
-      <div class="card" data-metric="playtime">
-        <div class="label">PLAY TIME TODAY</div>
-        <div class="value"><span class="num">0</span> <small>min</small></div>
-        <div class="delta flat">—</div>
-        <canvas width="220" height="44"></canvas>
-        <div class="sample">sample data · simulated in-browser</div>
-      </div>
-      <div class="card" data-metric="boxes">
-        <div class="label">BOXES.DEV BOX STATUS</div>
-        <div class="value" style="font-size:28px;"><span class="num">PAUSED</span></div>
-        <div class="delta flat">pips-adventure · 4 vCPU / 8 GB</div>
-        <canvas width="220" height="44"></canvas>
-        <div class="sample">real state · daemon not bootstrapped</div>
-      </div>
-      <div class="card" data-metric="uptime">
-        <div class="label">TRACKING PAGE UPTIME</div>
-        <div class="value"><span class="num">0</span> <small>s</small></div>
-        <div class="delta flat">since this page loaded</div>
-        <canvas width="220" height="44"></canvas>
-        <div class="sample">real · this browser session</div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Tracked items</h2>
-      <div class="row"><span class="status-dot ok"></span><span class="name">Game build</span><span class="detail">pips-adventure-opal.vercel.app</span><span class="tag">OK · 200</span></div>
-      <div class="row"><span class="status-dot ok"></span><span class="name">Tracking page</span><span class="detail">tracking.html in the same repo</span><span class="tag">OK · live</span></div>
-      <div class="row"><span class="status-dot warn"></span><span class="name">boxes.dev box</span><span class="detail">pips-adventure · daemon not bootstrapped (no project linked)</span><span class="tag">PAUSED</span></div>
-      <div class="row"><span class="status-dot ok"></span><span class="name">Sprites</span><span class="detail">18 sprites · loader fix dfb1791</span><span class="tag">OK</span></div>
-      <div class="row"><span class="status-dot warn"></span><span class="name">Agent in box</span><span class="detail">not running — CLI WebSocket hangs through VM proxy; direct API only</span><span class="tag">BLOCKED</span></div>
-    </section>
-
-    <section class="panel">
-      <h2>Event log <span class="note">(updates live)</span></h2>
-      <ul class="log" id="log"></ul>
-    </section>
-
-    <p class="foot">Last updated <span id="updated">—</span> · Game metrics are simulated sample data · Live checks are real requests from your browser · <a href="index.html" style="color:var(--yellow);">Back to Pip's Adventure</a></p>
-  </div>
-
-  <script>
-    (function(){
-      "use strict";
-      var logEl = document.getElementById('log');
-      var updatedEl = document.getElementById('updated');
-      var clockEl = document.getElementById('clock');
-      var startTs = Date.now();
-
-      function fmt(n){ return n.toLocaleString('en-US'); }
-      function nowStr(){
-        var d = new Date();
-        return d.toLocaleTimeString('en-GB', { hour12:false });
-      }
-      function log(msg){
-        var li = document.createElement('li');
-        var t = document.createElement('span'); t.className = 't'; t.textContent = nowStr();
-        var m = document.createElement('span'); m.className = 'm'; m.textContent = msg;
-        li.appendChild(t); li.appendChild(m);
-        logEl.insertBefore(li, logEl.firstChild);
-        while (logEl.children.length > 8) logEl.removeChild(logEl.lastChild);
-      }
-      function setDot(id, cls){ var el = document.getElementById(id); if (el) el.className = 'status-dot ' + cls; }
-      function setTag(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
-
-      // ---- real live checks ----
-      function checkSite(){
-        var t0 = Date.now();
-        fetch('https://pips-adventure-opal.vercel.app/', { method: 'GET', mode: 'no-cors', cache: 'no-store' })
-          .then(function(){
-            var ms = Date.now() - t0;
-            setDot('dot-site', 'ok'); setTag('tag-site', 'OK · ' + ms + ' ms');
-            log('Game site reachable (' + ms + ' ms).');
-          })
-          .catch(function(){
-            setDot('dot-site', 'bad'); setTag('tag-site', 'UNREACHABLE');
-            log('Game site check failed (offline or blocked).');
-          });
-      }
-      function checkPage(){
-        var t0 = Date.now();
-        fetch('tracking.html', { method: 'GET', cache: 'no-store' })
-          .then(function(r){
-            var ms = Date.now() - t0;
-            if (r.ok) { setDot('dot-page', 'ok'); setTag('tag-page', 'OK · ' + r.status + ' · ' + ms + ' ms'); log('Tracking page served OK (' + r.status + ', ' + ms + ' ms).'); }
-            else { setDot('dot-page', 'bad'); setTag('tag-page', 'HTTP ' + r.status); log('Tracking page returned HTTP ' + r.status + '.'); }
-          })
-          .catch(function(){
-            setDot('dot-page', 'bad'); setTag('tag-page', 'UNREACHABLE');
-            log('Tracking page check failed.');
-          });
-      }
-      function checkRepo(){
-        fetch('https://api.github.com/repos/vipcafe199x-sketch/pips-adventure/commits?per_page=1', { cache: 'no-store' })
-          .then(function(r){ return r.json(); })
-          .then(function(data){
-            var c = data && data[0];
-            if (!c) throw new Error('empty');
-            var sha = (c.sha || '').slice(0, 7);
-            var msg = (c.commit && c.commit.message || '').split('\n')[0];
-            var when = c.commit && c.commit.author && c.commit.author.date ? new Date(c.commit.author.date) : null;
-            setDot('dot-repo', 'ok'); setTag('tag-repo', sha);
-            var detail = document.getElementById('detail-repo');
-            if (detail) detail.textContent = msg + (when ? ' · ' + when.toLocaleString('en-GB') : '');
-            log('Latest commit ' + sha + ': ' + msg);
-          })
-          .catch(function(){
-            setDot('dot-repo', 'warn'); setTag('tag-repo', 'unavailable');
-            log('GitHub commit check unavailable (rate limit or offline).');
-          });
-      }
-
-      // ---- simulated live metrics (client-side, clearly labeled sample) ----
-      var state = {
-        players:  { v: 128, min: 40,  max: 420, step: 14 },
-        coins:    { v: 1840, min: 0,  max: 99999, step: 37 },
-        levels:   { v: 312, min: 0,  max: 99999, step: 2 },
-        playtime: { v: 96,  min: 0,  max: 99999, step: 1 },
-        boxes:    { v: 0,   min: 0,  max: 1, step: 0 },
-        uptime:   { v: 0,   min: 0,  max: 999999, step: 1 }
-      };
-      var hist = {};
-      var cards = {};
-      document.querySelectorAll('.card[data-metric]').forEach(function(card){
-        var key = card.getAttribute('data-metric');
-        cards[key] = { el: card, num: card.querySelector('.num'), delta: card.querySelector('.delta'), canvas: card.querySelector('canvas') };
-        hist[key] = [];
-      });
-      var boxStates = ['PAUSED', 'RUNNING', 'PAUSED', 'PAUSED'];
-      var boxIdx = 0;
-
-      function drawSpark(key){
-        var c = cards[key]; if (!c || !c.canvas) return;
-        var ctx = c.canvas.getContext('2d');
-        var W = c.canvas.width, H = c.canvas.height;
-        ctx.clearRect(0, 0, W, H);
-        var h = hist[key]; if (h.length < 2) return;
-        var min = Math.min.apply(null, h), max = Math.max.apply(null, h);
-        var span = (max - min) || 1;
-        ctx.beginPath();
-        h.forEach(function(v, i){
-          var x = (i / (h.length - 1)) * (W - 4) + 2;
-          var y = H - 4 - ((v - min) / span) * (H - 8);
-          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = '#FFD33D'; ctx.lineWidth = 2; ctx.stroke();
-      }
-      function tick(){
-        Object.keys(state).forEach(function(key){
-          var s = state[key], c = cards[key];
-          if (!c) return;
-          var prev = s.v;
-          if (key === 'uptime') s.v = Math.floor((Date.now() - startTs) / 1000);
-          else if (key === 'boxes') { /* box state is a label, not a number */ }
-          else {
-            s.v = Math.max(s.min, Math.min(s.max, s.v + Math.round((Math.random() - 0.42) * s.step)));
-            if (key === 'coins' || key === 'levels' || key === 'playtime') s.v = Math.max(prev, s.v);
-          }
-          if (key === 'boxes') {
-            boxIdx = (boxIdx + 1) % boxStates.length;
-            c.num.textContent = boxStates[boxIdx];
-          } else {
-            c.num.textContent = fmt(s.v);
-          }
-          var d = s.v - prev;
-          if (key === 'uptime' || key === 'boxes') { c.delta.textContent = '—'; c.delta.className = 'delta flat'; }
-          else if (d > 0) { c.delta.textContent = '▲ +' + fmt(d) + ' since last tick'; c.delta.className = 'delta up'; }
-          else if (d < 0) { c.delta.textContent = '▼ ' + fmt(d) + ' since last tick'; c.delta.className = 'delta down'; }
-          else { c.delta.textContent = '— no change'; c.delta.className = 'delta flat'; }
-          hist[key].push(key === 'boxes' ? (boxStates[boxIdx] === 'RUNNING' ? 1 : 0) : s.v);
-          if (hist[key].length > 40) hist[key].shift();
-          drawSpark(key);
-        });
-        updatedEl.textContent = nowStr();
-        clockEl.textContent = nowStr();
-      }
-      Object.keys(state).forEach(function(key){
-        for (var i = 0; i < 24; i++) hist[key].push(state[key].v + Math.round((Math.random() - 0.5) * 20));
-      });
-      log('Tracking page loaded — live checks + 1s metric updates started.');
-      log('Box "pips-adventure" is PAUSED; daemon bootstrap is blocked (no project linked).');
-      checkSite(); checkPage(); checkRepo();
-      tick();
-      setInterval(tick, 1000);
-      setInterval(function(){ checkSite(); checkPage(); }, 60000);
-      setInterval(function(){
-        var events = [
-          'Heartbeat OK — all tracked items polled.',
-          'Players online drifted within normal range.',
-          'Coins counter incremented from game sessions.',
-          'No new errors in the last minute.'
-        ];
-        log(events[Math.floor(Math.random() * events.length)]);
-      }, 15000);
-    })();
-  </script>
+<div class="page">
+<header><div class="brand"><span class="mark" aria-hidden="true">P</span><div><div class="eyebrow">Mission control</div><strong>Pip's Adventure</strong></div></div><a class="button" href="index.html">▶ Play game</a></header>
+<main>
+<div class="intro"><div class="eyebrow">Tracking dashboard / 01</div><h1>Small hero.<br><span>Live signals.</span></h1><p>Real requests. Real measurements. Follow the game, this dashboard, and the latest code on GitHub from your browser.</p></div>
+<noscript>Enable JavaScript to run live checks and display measurements.</noscript>
+<div class="toolbar"><span class="status" id="summary" role="status">Waiting for first checks…</span><time id="clock">— UTC</time><button class="button" id="refresh" type="button">↻ Check now</button></div>
+<section class="grid" aria-label="Six live metrics" id="metrics"></section>
+<div class="lower">
+<section class="panel" aria-labelledby="sources-heading"><div class="section-head"><h2 id="sources-heading">Live sources</h2><span class="small">Every 60 seconds</span></div>
+<div class="source"><a href="https://pips-adventure-opal.vercel.app/">01 / Game site ↗</a><p>GET pips-adventure-opal.vercel.app</p><p id="site-status" class="status">Not checked yet</p></div>
+<div class="source"><a href="tracking.html">02 / Tracking page ↗</a><p>GET this page's current URL</p><p id="page-status" class="status">Not checked yet</p></div>
+<div class="source"><a href="https://github.com/vipcafe199x-sketch/pips-adventure">03 / Latest GitHub commit ↗</a><p>Public commits API · main branch</p><p id="repo-status" class="status">Not checked yet</p><a id="commit-link" hidden></a><p id="commit-message"></p></div>
+</section>
+<section class="panel" aria-labelledby="log-heading"><div class="section-head"><h2 id="log-heading">Field notes</h2><span class="small">Actual check results</span></div><ol id="log" aria-label="Recent check results"></ol></section>
+</div>
+</main>
+<footer>Measurements belong to this browser session and reset on reload. Sparklines show up to 30 real observations; gaps mean unavailable. Request time includes downloading the response body. Cross-origin restrictions, offline connections, timeouts, and GitHub rate limits are reported as unavailable, never as confirmed downtime. No player or gameplay analytics are collected.</footer>
+</div>
+<script>
+(() => {
+'use strict';
+const siteURL = 'https://pips-adventure-opal.vercel.app/';
+const repoURL = 'https://api.github.com/repos/vipcafe199x-sketch/pips-adventure/commits?sha=main&per_page=1';
+const definitions = [
+ ['site','Game response time','ms','Live · game GET'],
+ ['page','Dashboard response time','ms','Live · this page GET'],
+ ['repo','GitHub API response time','ms','Live · public API GET'],
+ ['age','Latest commit age','min','Live · GitHub timestamp'],
+ ['success','Successful checks','%','Live · session requests'],
+ ['session','Session elapsed','s','Real · browser clock']
+];
+const cards = {};
+const started = performance.now();
+let total = 0, successful = 0, busy = false, commitTime = null;
+for (const [key, label, unit, source] of definitions) {
+ const card = document.createElement('article'); card.className = 'card';
+ card.innerHTML = '<div class="card-top"><h2></h2><span class="badge">REAL / LIVE</span></div><div class="value">—</div><p class="detail">Waiting for measurement</p><svg viewBox="0 0 300 54" role="img"><title></title><path fill="none" stroke="#9be63d" stroke-width="2.5" stroke-linejoin="round"></path></svg><div class="chart-note"></div>';
+ card.querySelector('h2').textContent = label;
+ card.querySelector('.chart-note').textContent = source + ' · ' + unit;
+ document.getElementById('metrics').append(card);
+ cards[key] = {el:card, history:[], label, unit};
+}
+function metric(key, value, detail) {
+ const c = cards[key];
+ c.el.querySelector('.value').textContent = value === null ? 'Unavailable' : value.toLocaleString('en-US', {maximumFractionDigits:1}) + ' ' + c.unit;
+ c.el.querySelector('.detail').textContent = detail;
+ c.history.push(value); if(c.history.length > 30) c.history.shift();
+ const values = c.history.filter(v => v !== null);
+ const min = Math.min(...values), max = Math.max(...values), span = max-min || 1;
+ let path = '', connected = false;
+ c.history.forEach((v,i) => {
+  if(v === null){ connected = false; return; }
+  const x = c.history.length === 1 ? 150 : 4 + i/(c.history.length-1)*292;
+  const y = max === min ? 27 : 48-(v-min)/span*42;
+  path += (connected?'L':'M') + x + ',' + y;
+  if(!connected) path += 'l0.1,0';
+  connected = true;
+ });
+ c.el.querySelector('path').setAttribute('d',path);
+ c.el.querySelector('title').textContent = c.label + ': ' + values.length + ' measured observations, ' + (c.history.length-values.length) + ' unavailable';
+}
+function log(message) {
+ const li = document.createElement('li'), time = document.createElement('time');
+ time.dateTime = new Date().toISOString(); time.textContent = new Date().toLocaleTimeString('en-GB', {timeZone:'UTC'}) + ' UTC';
+ li.append(time, document.createTextNode(message));
+ const list = document.getElementById('log'); list.prepend(li);
+ while(list.children.length>9) list.lastChild.remove();
+}
+async function check(key,url) {
+ const controller = new AbortController(), timeout = setTimeout(() => controller.abort(),12000);
+ const start = performance.now();
+ const state = document.getElementById(key+'-status');
+ state.textContent = 'Checking…'; state.className = 'status';
+ try {
+  const response = await fetch(url,{cache:'no-store',signal:controller.signal});
+  if(!response.ok) throw new Error('HTTP '+response.status+(response.status===403 || response.status===429 ? ' · possible rate limit or access restriction' : ''));
+  const body = await response.text();
+  const elapsed = Math.round(performance.now()-start);
+  if(key==='repo') {
+   const data = JSON.parse(body), commit = data[0];
+   const date = Date.parse(commit?.commit?.committer?.date);
+   if(!commit || !/^[a-f0-9]{40}$/.test(commit.sha) || !Number.isFinite(date)) throw new Error('Invalid commit response');
+   commitTime = date;
+   const link = document.getElementById('commit-link');
+   link.hidden = false; link.href = 'https://github.com/vipcafe199x-sketch/pips-adventure/commit/'+commit.sha;
+   link.textContent = commit.sha.slice(0,7)+' ↗';
+   document.getElementById('commit-message').textContent = commit.commit.message.split('\n')[0]+' · '+new Date(date).toISOString();
+   metric('age',Math.max(0,(Date.now()-commitTime)/60000),'Age at latest successful API check');
+  }
+  successful++;
+  metric(key,elapsed,'HTTP '+response.status+' · checked '+new Date().toLocaleTimeString('en-GB'));
+  state.textContent = 'HTTP '+response.status+' · '+elapsed+' ms · '+new Date().toLocaleTimeString('en-GB'); state.className='status ok';
+  log((key==='site'?'Game':key==='page'?'Dashboard':'GitHub')+' returned HTTP '+response.status+' in '+elapsed+' ms.');
+ } catch(error) {
+  const reason = error.name==='AbortError' ? 'Timed out after 12 seconds' : error instanceof TypeError ? 'Network or CORS restriction; HTTP status unknown' : error.message;
+  metric(key,null,reason); state.textContent='Unavailable · '+reason; state.className='status bad';
+  if(key==='repo') {
+   metric('age',null,'Latest API check failed');
+   document.getElementById('commit-link').hidden=true;
+   document.getElementById('commit-message').textContent='Latest commit unavailable';
+  }
+  log(key+' check unavailable: '+reason);
+ } finally { total++; clearTimeout(timeout); }
+}
+async function refresh() {
+ if(busy) return; busy=true;
+ const button=document.getElementById('refresh'); button.disabled=true;
+ document.getElementById('summary').textContent='Checking three live sources…';
+ try {
+  await Promise.all([check('site',siteURL),check('page',location.href),check('repo',repoURL)]);
+  metric('success',successful/total*100,successful+' successful / '+total+' completed requests this session');
+  const summary=document.getElementById('summary');
+  const unavailable=['site','page','repo'].filter(k=>document.getElementById(k+'-status').classList.contains('bad')).length;
+  summary.textContent=unavailable ? unavailable+' of 3 sources unavailable · retry in 60s' : '3 of 3 sources verified · refresh in 60s';
+  summary.className=unavailable?'status':'status ok';
+ } finally { busy=false; button.disabled=false; }
+}
+function tick(){
+ const now=new Date(); const clock=document.getElementById('clock'); clock.dateTime=now.toISOString();
+ clock.textContent=now.toLocaleString('en-GB',{timeZone:'UTC',hour12:false})+' UTC';
+ metric('session',Math.floor((performance.now()-started)/1000),'Elapsed since this dashboard opened');
+}
+document.getElementById('refresh').addEventListener('click',refresh);
+tick(); refresh(); setInterval(tick,1000); setInterval(refresh,60000);
+})();
+</script>
 </body>
 </html>
